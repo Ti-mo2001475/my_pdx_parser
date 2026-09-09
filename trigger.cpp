@@ -5,10 +5,11 @@
 #include "scope.h"
 #include "localization.h"
 #include "paradox_macro.h"
+#include "utils/functional_util.h"
 #include<map>
 #include<iostream>
 #include<set>
-
+//
 using OverrideHandler = bool(*)(std::vector<std::pair<std::string,ParadoxBase*>>&);
 
 std::map<std::string,std::string> numberRequiredItems;
@@ -1045,7 +1046,7 @@ void registerTriggerItems(){
 				ret.append(applyPattern("%s文化的",culture));
 			}
 			if(vec[1] != nullptr){
-				ret.append(applyPattern("%d级"),vec[1]->getAsInteger()->getIntegerContent());
+				ret.append(applyPattern("%d级",vec[1]->getAsInteger()->getIntegerContent()));
 			}
 			if(vec[5] != nullptr){
 				ret.append(vec[5]->getAsBoolean()->getValue() ? "男性" : "女性");
@@ -1205,7 +1206,7 @@ void registerTriggerItems(){
 		{},
 		std::bitset<64>(),
 		[](std::vector<ParadoxBase*> vec,bool reversed){
-			std::string ret = reversed ? "没有一个","有一个";
+			std::string ret = reversed ? "没有一个" : "有一个";
 			std::string post("");
 			if(vec[0] != nullptr) post.append(applyPattern("火力点数至少为%d",vec[0]->getAsInteger()->getIntegerContent()));
 			if(vec[1] != nullptr) {
@@ -1237,14 +1238,18 @@ void registerTriggerItems(){
 		{"value","type","include_monarch","include_heir"},
 		{ParadoxType::INTEGER,ParadoxType::STRING,ParadoxType::BOOLEAN,ParadoxType::BOOLEAN},
 		{},
-		std::bitset<64>(0x0000'0000'0000'0003);
+		std::bitset<64>(0x0000'0000'0000'0003),
 		[](std::vector<ParadoxBase*> vec,bool reversed){
 			std::string ret("");
-			if(vec[1]->getAsString()->getIntegerContent() == "general") ret.append("陆军将领数量");
+			if(vec[1]->getAsString()->getStringContent() == "general") ret.append("陆军将领数量");
 			else ret.append("海军将领数量");
 			ret.append(reversed ? "少于" : "至少为");
 			ret.append(std::to_string(vec[0]->getAsInteger()->getIntegerContent()));
-
+			if(vec[2] != nullptr) {
+				if(vec[3] != nullptr) ret.append("(不包含君主和继承人将领)");
+				else ret.append("(不包含君主将领)");
+			} 
+			else ret.append("(不包含继承人将领)");
 			return ret;
 		}
 	));

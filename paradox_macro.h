@@ -19,12 +19,14 @@ enum class HolderType{
 
 struct MacroHolder {
     virtual HolderType getType() = 0;
+    virtual ~MacroHolder() = default;
 };
 
 struct ConditionalHolder : MacroHolder{
     virtual HolderType getType(){
         return HolderType::CONDITIONAL;
     }
+    virtual ~ConditionalHolder() = default;    
     int parameterIndex;
     std::vector<std::unique_ptr<MacroHolder>> subHolders;
 };
@@ -33,6 +35,7 @@ struct StringHolder : MacroHolder{
     virtual HolderType getType(){
         return HolderType::STRING;
     }
+    virtual ~StringHolder() = default;
     std::string data;
     StringHolder(const std::string& _data) : data(_data){}
     StringHolder(std::string&& _data) : data(_data){}
@@ -42,6 +45,7 @@ struct ParameterHolder : MacroHolder{
     virtual HolderType getType(){
         return HolderType::PARAMETER;
     }
+    virtual ~ParameterHolder() = default;
     int parameterIndex;
 };
 
