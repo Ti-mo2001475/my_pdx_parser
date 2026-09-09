@@ -136,6 +136,7 @@ bool isCastable(ParadoxBase* base,ParadoxType type){
 //the returned pointer is created by 'new' operator and the caller has the responsibility to manage memory
 //this function is used to create a ParadoxBase Object which do not managed by global object manager.
 ParadoxBase* deep_copy(ParadoxBase* base){
+	if(base == nullptr) return nullptr;
 	if(base->getType() == ParadoxType::INTEGER){
 		ParadoxInteger* pInt = base->getAsInteger();
 		return new ParadoxInteger(pInt->getIntegerContent());
@@ -180,6 +181,7 @@ ParadoxBase* deep_copy(ParadoxBase* base){
 }
 //this function is used to deep copy a ParadoxBase Object safely.
 ParadoxBase* deep_copy_safe(ParadoxBase* base){
+	if(base == nullptr) return nullptr;
 	if(base->getType() == ParadoxType::INTEGER){
 		ParadoxInteger* pInt = base->getAsInteger();
 		return createInteger(pInt->getIntegerContent());

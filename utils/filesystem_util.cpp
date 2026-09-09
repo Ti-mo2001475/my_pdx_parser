@@ -27,7 +27,7 @@ std::string readAllLinesWithoutComment(std::string path){
     std::string line("");
     while(!fin.eof()){
         if(line[0] == '#') continue;
-        if(size_t pos = line.find('#') && pos != std::string::npos) line.erase(pos);
+        if(size_t pos = line.find('#'); pos != std::string::npos) line.erase(pos);
         out.append(line);
         out.append("\n");
         std::getline(fin,line);

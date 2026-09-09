@@ -80,8 +80,7 @@ struct ParadoxString : public ParadoxBase{
 	virtual void traverse(std::function<void(ParadoxBase*)> visitor) override{
 		visitor(this);
 	}
-	std::string getStringContent(){
-		
+	std::string getStringContent() const{
 		return content;
 	}
 };
@@ -347,14 +346,20 @@ std::ofstream& logStream();
 
 template<typename... types>
 void log_error(const std::source_location location,types... args){
-	(logStream() << "#[ERROR][" << location.file_name() << ":" << location.line() << "][" <<location.function_name() << "]: " << ... << args) << std::endl;
+	std::ostream& stream = logStream();
+	stream << "#[ERROR][" << location.file_name() << ":" << location.line() << "][" <<location.function_name() << "]: ";
+	(stream << ... << args) << std::endl;
 }
 template<typename... types>
 void log_warning(const std::source_location location,types... args){
-	(logStream() << "#[WARNING][" << location.file_name() << ":" << location.line() << "][" <<location.function_name() << "]: " << ... << args) << std::endl;
+	std::ostream& stream = logStream();
+	stream << "#[WARNING][" << location.file_name() << ":" << location.line() << "][" <<location.function_name() << "]: ";
+	(stream << ... << args) << std::endl;
 }
 template<typename... types>
 void log_info(const std::source_location location,types... args){
-	(logStream() << "#[INFO][" << location.file_name() << ":" << location.line() << "][" <<location.function_name() << "]: " << ... << args) << std::endl;
+	std::ostream& stream = logStream();
+	stream << "#[INFO][" << location.file_name() << ":" << location.line() << "][" <<location.function_name() << "]: ";
+	(stream << ... << args) << std::endl;
 }
 #endif

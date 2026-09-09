@@ -3,9 +3,11 @@
 
 #include<iostream>
 #include<map>
+#include<bitset>
 #include "paradox_type.h"
 #include "scope.h"
 #include <functional>
+#include "utils/functional_util.h"
 
 enum class TriggerType{
 	COMMON,LOGIC,CHANGE_SCOPE,CONDITIONAL,NUM,HIDDEN,CUSTOM_TT,SPECIAL
@@ -26,12 +28,14 @@ struct TriggerItem{
 	std::map<std::string,int> parameterName;
 	std::vector<ParadoxType> parameterType;
 	std::vector<int> usedParameter;
+	std::bitset<64> requiredParameter = flipedBitset<64>();
+	std::function<std::string(std::vector<ParadoxBase*>,bool)> overrideLocalization;
 	ScopeType usable_scope;
 	int attribue;
 	std::string toString(std::vector<ParadoxBase*> base,bool reversed);
 	std::string toHtml(std::vector<ParadoxBase*> base,bool reversed);
 	TriggerItem(const std::string& _name) : name(_name){}
-	TriggerItem(const std::string& _name,std::pair<std::string,std::string>&& patterns,std::vector<std::string>&& parameterName,std::vector<ParadoxType>&& parameterType,std::vector<int>&& usedParameter,ScopeType scope_type = ScopeType::COUNTRY);
+	TriggerItem(const std::string& _name,std::pair<std::string,std::string>&& patterns,std::vector<std::string>&& parameterName,std::vector<ParadoxType>&& parameterType,std::vector<int>&& usedParameter,std::bitset<64> _requiredParameter = flipedBitset<64>(),std::function<std::string(std::vector<ParadoxBase*>,bool)> _overrideLocalization = std::function<std::string(std::vector<ParadoxBase*>,bool)>(),ScopeType scope_type = ScopeType::COUNTRY);
 };
 
 
