@@ -29,7 +29,7 @@ no {
 	yylval.num = atoi(yytext) * 1000;
 	return T_NUM_CONSTANT;
 }
-(\-)?[0-9]+\.[0=9]{1,3} {
+(\-)?[0-9]+\.[0-9]{1,3} {
 	yylval.num = strtof(yytext, NULL) * 1000;
     return T_NUM_CONSTANT;
 }
