@@ -52,7 +52,7 @@ no {
 	strncpy(yylval.name,yytext,96);	
 	return T_EVENT_IDENTIFIER;
 }
-[A-Za-z_][0-9a-zA-Z@\%^\*_\+\\\./\-?`~':]+ {
+[0-9a-zA-Z@\%^\*_\+\\\./\-?`~':]+ {
 	strncpy(yylval.name,yytext,96);	
 	return T_IDENT;
 }
