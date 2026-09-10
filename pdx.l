@@ -23,19 +23,20 @@ no {
 	yylval.num = 0;
 	return T_BOOLEAN;
 }
-[\t\040]+   { return ' ';  }
-[\r\n]+     { return ' '; }
-(\-)?[0-9]+ {
+
+([\+\-])?[0-9]+ {
 	yylval.num = atoi(yytext) * 1000;
 	return T_NUM_CONSTANT;
 }
-(\-)?[0-9]+\.[0-9]{1,3} {
+([\+\-])?[0-9]+\.[0-9]{1,3} {
 	yylval.num = strtof(yytext, NULL) * 1000;
     return T_NUM_CONSTANT;
 }
 ([\r\n\t\040])+=([\r\n\t\040])* {
 	return '=';
 }
+[\t\040]+   { return ' ';  }
+[\r\n]+     { return ' '; }
 [\{\}=]([\r\n\t\040])* {
 	return yytext[0];
 }
