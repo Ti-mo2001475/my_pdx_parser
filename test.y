@@ -219,6 +219,6 @@ LBR: '{' {$$ = 1;}
 
 
 void yyerror(const char* s) {
-    log_error(current_location(),s,",the next token is",yylex());
+    log_error(current_location(),s,",the next 3 token is ",yylex(),' ',yylex(),' ',yylex());
 	ROOT = nullptr;
 }
