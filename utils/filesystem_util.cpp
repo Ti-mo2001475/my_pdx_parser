@@ -49,10 +49,10 @@ std::string readAllLinesWithoutComment(std::string path,char prefix,std::functio
         if(line[0] == '#') {
             continue;
         }
+        if(size_t pos = line.find('#'); pos != std::string::npos) line.erase(pos);
         if(line[0] == prefix && !handler(line)) {
             continue;
         }
-        if(size_t pos = line.find('#'); pos != std::string::npos) line.erase(pos);
         out.append(line);
         out.append("\n");
     }

@@ -15,7 +15,7 @@ extern int yylex();
 extern ParadoxTag* ROOT;
 extern std::vector<ParadoxBase*> parsedObject;
 extern void yyrestart ( FILE *input_file );
-
+extern void trim(std::string);
 
 ParadoxTag* parseFile(std::string str){
     ROOT = nullptr;
@@ -27,7 +27,8 @@ ParadoxTag* parseFile(std::string str){
 //
 ParadoxTag* parseString(std::string str){
     ROOT = nullptr;
-
+    trim(str);
+    if(str.empty()) return ROOT;
     YY_BUFFER_STATE state = yy_scan_string(str.c_str());
     yyparse();
     yy_delete_buffer(state);
