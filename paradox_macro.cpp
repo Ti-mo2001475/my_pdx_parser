@@ -228,10 +228,6 @@ void loadScriptedTrigger(std::string rootPath){
             auto [key,value] = splitWith(str,"=");
             trim(key);
             trim(value);
-            size_t pos = value.find('#');
-            if(pos != std::string::npos){
-                value.erase(pos);
-            }
             simpleMacro[key] = value;
             return false;
         });
@@ -279,10 +275,6 @@ void loadScriptedEffect(std::string rootPath){
             auto [key,value] = splitWith(str,"=");
             trim(key);
             trim(value);
-            size_t pos = value.find('#');
-            if(pos != std::string::npos){
-                value.erase(pos);
-            }
             simpleMacro[key] = value;
             return false;
         });

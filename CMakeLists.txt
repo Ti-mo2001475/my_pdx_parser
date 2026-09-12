@@ -47,3 +47,10 @@ target_include_directories(print_trigger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(console PRIVATE "~/.hidden/header")
 target_include_directories(print_modifier PRIVATE "~/.hidden/header")
 target_include_directories(print_trigger PRIVATE "~/.hidden/header")
+
+# Linux requires an explicit pthread link option
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(console PRIVATE pthread)
+    target_link_libraries(print_modifier PRIVATE pthread)
+    target_link_libraries(print_trigger PRIVATE pthread)
+endif()
