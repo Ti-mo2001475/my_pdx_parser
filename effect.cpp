@@ -9,7 +9,7 @@
 #include <string_view>
 #include <iostream>
 #include <source_location>
-
+#include <charconv>
 
 using OverrideHandler = bool(*)(std::vector<std::pair<std::string,ParadoxBase*>>&);
 
@@ -245,6 +245,14 @@ std::string ConditionalEffect::toString(int depth){
         preInit(str,depth);
         str.append("则:\n");
     }
+    else if(this->isLoop()){
+        preInit(str,depth);
+        str.append("若满足以下条件:\n");
+        preInit(str,depth + 1);
+        str.append(this->condition->toString(false));
+        preInit(str,depth);
+        str.append("则循环执行:\n");        
+    }
     else {
         preInit(str,depth);
         str.append("若满足以下条件:\n");
@@ -260,11 +268,9 @@ std::string ConditionalEffect::toString(int depth){
     return str;
 }
 std::string RandomEffect::toString(int depth){
-    Pattern p("%p%%概率发生以下效果:\n");
-    p.setNextInteger(this->getChance());
     std::string str("");
     preInit(str,depth);
-    str.append(p.getOutput());
+    str.append(applyPattern("%d%%概率发生以下效果:",this->getChance()));
     for(Effect* effect : this->subEffects){
         str.append(effect->toString(depth + 1));
     }
@@ -278,6 +284,61 @@ std::string SpecialEffect::toString(int depth){
     }
     return this->instance->toString(depth);
 }
+
+FixedRandomListEffect* RandomListEffect::simplify(){
+    for(RandomItem& item : this->items){
+        if(item.trigger == nullptr && item.modifier.empty()) return nullptr;
+    }
+    FixedRandomListEffect* effect = new FixedRandomListEffect();  
+    *((uint64_t*)effect->extra_data) = 0;
+    for(RandomItem& item : this->items){
+        effect->items.emplace_back(item.baseWeight,item.effect);
+        *((uint64_t*)effect->extra_data) += item.baseWeight;
+    }
+    return effect;
+}
+
+std::string FixedRandomListEffect::toString(int depth){
+    std::string str("");
+    preInit(str,depth);
+    long long totalWeight = this->getTotalWeight();
+    str.append("随机发生下列效果之一:\n");
+    for(auto[weight,effect] : this->items){
+        preInit(str,depth + 1);
+        long long chance = weight * 100'000 / totalWeight;
+        if(weight != 0 && chance == 0){
+            str.append(applyPattern("小于0.001%的概率发生下列效果:\n"));
+        }
+        else {
+            str.append(applyPattern("%d%%的概率发生下列效果:\n",chance));
+        }
+        str.append(effect->toString(depth + 2));
+    }
+    return str;
+}
+
+std::string RandomListEffect::toString(int depth){
+    std::string str("");
+    preInit(str,depth);
+    str.append("随机发生下列效果之一:\n");
+    for(auto& item : this->items){
+        preInit(str,depth + 1);
+        if(item.trigger != nullptr) {
+            str.append("若满足下列条件:\n");
+            str.append(item.trigger->toString(depth+2));
+            preInit(str,depth + 1);
+        }
+        str.append(applyPattern("有%d的基础权重发生下列效果:\n",item.baseWeight));
+        str.append(item.effect->toString(depth+2));
+        for(auto[trigger,factor] : item.modifier){
+            preInit(str,depth+1);
+            str.append(applyPattern("若满足以下条件,权重将会变为原来的%d倍:\n",factor));
+            str.append(item.effect->toString(depth+2));
+        }
+    }    
+    return str;
+}
+
 
 std::unique_ptr<ComplexEffect> createBaseEffect(){
     auto ptr = std::unique_ptr<ComplexEffect>(static_cast<ComplexEffect*>(new ChangeScopeEffect(nullptr)));
@@ -305,9 +366,7 @@ void parseEffect(ParadoxTag* root,ComplexEffect* from){
                     parseEffect(tag,effect);
                 }
                 else {
-                    
                     log_error(current_location(),"cannot create a Conditional Effect without \"limit\" block.");
-
                 }
             }
             else if(name == "else_if"){
@@ -352,6 +411,22 @@ void parseEffect(ParadoxTag* root,ComplexEffect* from){
                     }
                 } 
             }
+            else if(name == "while"){
+                if(ParadoxTag* subTag = tag->getAsTag("limit");subTag != nullptr){
+                    ConditionalEffect* effect = new ConditionalEffect();
+                    from->addEffect(effect);
+                    ComplexTrigger* trigger = createBaseTrigger();
+                    parseTrigger(subTag,trigger);
+                    trigger->takeOverLifeCycle();
+                    tag->remove("limit",0);
+                    effect->condition = trigger;
+                    effect->setLoopState();
+                    parseEffect(tag,effect);
+                }
+                else {
+                    log_error(current_location(),"cannot create a Conditional Effect without \"limit\" block.");
+                }                
+            }
             else if(name == "hidden_effect"){
                 HiddenEffect* effect = new HiddenEffect();
                 from->addEffect(effect);
@@ -369,6 +444,60 @@ void parseEffect(ParadoxTag* root,ComplexEffect* from){
                 }
                 else {
                     log_error(current_location(),"cannot create \"random\" block with a non-number \"chance\"");
+                }
+            }
+            else if(name == "random_list"){
+                RandomListEffect* effect = new RandomListEffect();
+                for(int i = 0;i < tag->size();i++){
+                    RandomItem item;
+                    auto[chance_str,content] = (*tag)[i];
+                    double chance = 0;
+                    std::from_chars(chance_str.data(),chance_str.data() + chance_str.size(),chance);
+                    if(chance == 0.0) {
+                        delete effect;
+                        effect = nullptr;
+                        log_error(current_location(),"cannot create \"random_list\" item with non-number or zero chance.");
+                        break;
+                    }
+                    int iChance = chance * 1000;
+                    item.baseWeight = iChance;
+                    ComplexEffect* itemEffect = createBaseEffect().release(); 
+                    if(content->getAsTag() == nullptr){
+                        delete effect;
+                        effect = nullptr;
+                        log_error(current_location(),"cannot create \"random_list\" block without effect.");
+                        break;
+                    }
+                    ParadoxTag* subTag = content->getAsTag();
+                    parseEffect(subTag,itemEffect);
+                    item.effect = itemEffect;
+                    if(ParadoxTag* triggerTag = subTag->getAsTag("trigger");triggerTag != nullptr){
+                        ComplexTrigger* trigger = createBaseTrigger();
+                        parseTrigger(triggerTag,trigger);
+                        item.trigger = trigger;
+                    }
+                    for(int i = 0;i < subTag->size();i++){
+                        auto[k,v] = (*subTag)[i];
+                        if(k != "modifier") continue;
+                        if(ParadoxTag* modifierTag = v->getAsTag();modifierTag != nullptr){
+                            long long factor = 0;
+                            if(ParadoxBase* factorBase = modifierTag->get("factor");factorBase == nullptr && factorBase->getType() == ParadoxType::INTEGER) {
+                                ParadoxInteger* pInt = (ParadoxInteger*)factorBase;
+                                factor = pInt->getIntegerContent();
+                            }
+                            else continue;
+                            ComplexTrigger* trigger = createBaseTrigger();
+                            parseTrigger(modifierTag,trigger);
+                            item.modifier.emplace_back(trigger,factor);
+                        }
+                    }
+                }
+                if(effect != nullptr) {
+                    if(FixedRandomListEffect* simpleEffect = effect->simplify(); simpleEffect != nullptr) {
+                        delete effect;
+                        from->addEffect(simpleEffect);
+                    }
+                    else from->addEffect(effect);
                 }
             }
             else if(Scope* scope = createScopeFromString(name);scope != nullptr){

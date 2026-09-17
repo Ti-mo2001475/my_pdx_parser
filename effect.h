@@ -323,7 +323,6 @@ struct ComplexEffect : Effect{
 	std::vector<Effect*> subEffects;
 	void addEffect(Effect* effect){
 		subEffects.push_back(effect);
-		//effect->depth = this->depth + 1;
 	}
 };
 
@@ -341,8 +340,10 @@ struct ConditionalEffect : ComplexEffect{
 	Trigger* condition;
 	void setElseIfState(){ this->extra_data[0] = 1; };
 	void setElseState() { this->extra_data[0] = 2; }
+	void setLoopState() { this->extra_data[0] = 4;}
 	bool isElseIf() { return this->extra_data[0] == 1; }
 	bool isElse() { return this->extra_data[0] == 2; }
+	bool isLoop() { return this->extra_data[0] == 4;}
 	ConditionalEffect() noexcept{
 		this->extra_data[0] = 0;
 	}
@@ -386,6 +387,36 @@ struct SpecialEffect : Effect {
 	}
 };
 
+struct RandomItem{
+	long long baseWeight;
+	Trigger* trigger;
+	std::vector<std::pair<Trigger*,long long>> modifier;
+	Effect* effect;
+};
+struct RandomListEffect : Effect {
+	std::vector<RandomItem> items;
+	virtual std::string toString(int depth = 1);
+	virtual EffectType getType() {
+		return EffectType::RANDOM_LIST;
+	}
+	virtual ~RandomListEffect() = default;
+	FixedRandomListEffect* simplify();
+
+};
+struct FixedRandomListEffect : Effect {
+	std::vector<std::pair<long long, Effect*>> items;
+	virtual std::string toString(int depth = 1);
+	virtual EffectType getType() {
+		return EffectType::RANDOM_LIST;
+	}
+	virtual ~FixedRandomListEffect() = default;
+	FixedRandomListEffect(){
+		*(uint64_t*)this->extra_data = 0;
+	}
+	long long getTotalWeight(){
+		return *(uint64_t*)this->extra_data;
+	}
+};
 
 void parseEffect(ParadoxTag* root,ComplexEffect* from);
 std::unique_ptr<ComplexEffect> createBaseEffect();
