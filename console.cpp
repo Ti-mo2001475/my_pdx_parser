@@ -292,10 +292,14 @@ int main(){
 			if(i != 6) std::cout << "=========" << std::endl;	
 		}
 	};
+	//deprecated.
 	handlers["reload_loc"] = [](std::vector<std::string> vec){
 		readLocalizations();
 	};
-	
+	handlers["reload"] = [](std::vector<std::string> vec){
+		readLocalizations();
+		reloadNationalIdeas();
+	};
 	handlers["extract_mission"] = [](std::vector<std::string> vec){
 		if(vec.empty()){
 			std::cout << "usage: extract_mission <mission_file_name>";

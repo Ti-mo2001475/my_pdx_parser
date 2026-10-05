@@ -16,6 +16,7 @@ struct Trigger;
 struct Effect;
 struct ComplexEffect;
 struct ScriptedEffect;
+struct FixedRandomListEffect;
 enum class EffectType{
 	COMMON,CHANGE_SCOPE,CONDITIONAL,HIDDEN,RANDOM,RANDOM_LIST,TOOLTIP,SPECIAL
 };

@@ -307,7 +307,7 @@ std::string FixedRandomListEffect::toString(int depth){
         preInit(str,depth + 1);
         long long chance = weight * 100'000 / totalWeight;
         if(weight != 0 && chance == 0){
-            str.append(applyPattern("小于0.001%的概率发生下列效果:\n"));
+            str.append("小于0.001%的概率发生下列效果:\n");
         }
         else {
             str.append(applyPattern("%d%%的概率发生下列效果:\n",chance));
