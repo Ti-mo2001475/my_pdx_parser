@@ -481,7 +481,7 @@ void parseEffect(ParadoxTag* root,ComplexEffect* from){
                         if(k != "modifier") continue;
                         if(ParadoxTag* modifierTag = v->getAsTag();modifierTag != nullptr){
                             long long factor = 0;
-                            if(ParadoxBase* factorBase = modifierTag->get("factor");factorBase == nullptr && factorBase->getType() == ParadoxType::INTEGER) {
+                            if(ParadoxBase* factorBase = modifierTag->get("factor");factorBase != nullptr && factorBase->getType() == ParadoxType::INTEGER) {
                                 ParadoxInteger* pInt = (ParadoxInteger*)factorBase;
                                 factor = pInt->getIntegerContent();
                             }
