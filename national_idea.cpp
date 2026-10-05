@@ -42,7 +42,6 @@ void loadNationalIdea(std::string rootPath){
                 idea->trigger->takeOverLifeCycle();
             }
             else{
-                
                 idea->modifiers[slot]->name = getStringPtr(entry);
                 ParseModifier(ideaTag->getAsTag(entry),*(idea->modifiers[slot]));
                 slot++;
@@ -70,6 +69,7 @@ void reloadNationalIdeas(std::string rootPath){
         delete p.second;
     }
     nationalIdeas.clear();
+    tagIdeas.clear();
     loadNationalIdea(rootPath);
 }
 

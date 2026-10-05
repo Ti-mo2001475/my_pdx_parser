@@ -294,10 +294,13 @@ int main(){
 	};
 	//deprecated.
 	handlers["reload_loc"] = [](std::vector<std::string> vec){
-		readLocalizations();
+		std::thread& th = readLocalizations();
+		th.join();
+		reloadNationalIdeas();
 	};
 	handlers["reload"] = [](std::vector<std::string> vec){
-		readLocalizations();
+		std::thread& th = readLocalizations();
+		th.join();
 		reloadNationalIdeas();
 	};
 	handlers["extract_mission"] = [](std::vector<std::string> vec){
